@@ -64,7 +64,7 @@ router.post('/login.html', function(req, res, next) {
                     login:true
                 };
                 tgtMap[tgc] = tgt;
-                res.cookie('nstgc', tgc, { expires: new Date(Date.now() + 900000), httpOnly: true });
+                res.cookie('nstgc', tgc, {path:'/',maxAge: 900000, httpOnly: true });
                 data.ST = common.getRandomString(false,64);
                 req.session.st = data.ST;
                 req.session.stExpiresTime = new Date().getTime() + config.stExpiresTime;
