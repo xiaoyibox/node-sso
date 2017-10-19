@@ -1,11 +1,14 @@
 extends layout
 
 block content
+  input(type="hidden" value="#{signToken}" id="signToken")
+  input(type="hidden" value="#{signTicket}" id="signTicket")
+  input(type="hidden" value="#{service}" id="service")
   .ui.middle.aligned.center.aligned.grid
     .sixteen.wide.column
       h2.ui.teal.image.header
         img.image(src="/images/logo.png" style="border-radius:8px")
-        .content #{title}
+        .content Express SSO for NodeJS
           span.version  v0.0.2
       form.ui.large.form
         .ui.stacked.segment
@@ -24,7 +27,7 @@ block content
               a.ui.tag.label
                 .randomcode
           .ui.fluid.large.teal.submit.button Login
-        .ui.error.message
+        .ui.error.message sd
       .ui.message New to us?
         a(href="#") Sign Up
   script(src="/javascripts/index.js")
