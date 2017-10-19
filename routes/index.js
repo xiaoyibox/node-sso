@@ -16,12 +16,44 @@ router.get(['','/'], function(req, res, next) {
     res.render('index', data);
 });
 
-/* GET home page. */
-router.get('/login.html', function(req, res, next) {
+/* POST LOGIN page. */
+router.post('/login.html', function(req, res, next) {
+    var data ={};
+    console.log();
     if(common.checkCSRF(req)){
-
+        if(req.body.username === 'username'
+            && req.body.password === 'password'
+        ){
+            if(req.body.randomcode === req.session.randomcode){
+                req.session.randomcode = 'judy89w';
+                req.session.username = req.body.username;
+                req.session.login = true;
+                data.ST = common.getRandomString(false,64);
+                data.result = 'success';
+            }else{
+                data.result = 'fail';
+                data.msg = '您输入的验证码不正确。';
+            }
+        }else{
+            data.result = 'fail';
+            data.msg = '用户名或者密码不正确。';
+        }
+    }else{
+        data.msg = '您正在非法操作，请刷新页面重试。';
     }
-    res.render('index', { title: 'Express SSO for NodeJS' });
+    res.json(data);
+});
+
+
+router.get('/success.html', function(req, res, next) {
+    var data = {};
+    if(req.session.username && req.session.login === true){
+        data.username = req.session.username;
+        res.render('success', data);
+    }else{
+        res.redirect('/');
+    }
+
 });
 
 module.exports = router;

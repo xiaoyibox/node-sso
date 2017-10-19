@@ -15,18 +15,18 @@ block content
           .field
             .ui.left.icon.input
               i.user.icon
-              input(type="text" name="email" placeholder="E-mail address" maxlength="50")
+              input(type="text" id="username" placeholder="Account" maxlength="50")
           .field
             .ui.left.icon.input
               i.lock.icon
-              input(type="password" name="password" placeholder="Password" maxlength="20")
+              input(type="password" id="password" placeholder="Password" maxlength="20")
           .field
             .ui.right.labeled.left.icon.input
               i.tags.icon
-              input(type="text" name="randomcode" placeholder="Verification Code" maxlength="4")
+              input(type="text" id="randomcode" placeholder="Verification Code" maxlength="4")
               a.ui.tag.label
                 .randomcode
-          .ui.fluid.large.teal.submit.button Login
+          .ui.fluid.large.teal.submit.button.loginButton Login
         .ui.error.message sd
       .ui.message New to us?
         a(href="#") Sign Up
