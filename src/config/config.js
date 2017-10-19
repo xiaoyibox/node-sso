@@ -37,6 +37,6 @@ exports.config = {
     sessionStoreType : 1, //1:内存 2:redis
     favicon : false,//是否防止favicon，默认为false
     morganLevel : 'dev',//log 级别
-
+    stExpiresTime : 5,//登录成功后ST的过期时间为5秒
 
 };
