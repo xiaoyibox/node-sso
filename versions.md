@@ -1,3 +1,20 @@
+# Versions:
+### v0.0.1
+初始化项目
+### v0.0.2
+安装相关组件和配置构建工具
+#### UI Framework
+https://semantic-ui.com/
+##### Install Semantic UI
+~~~ shell
+npm install semantic-ui --save
+cd semantic/
+gulp build
+~~~
+
+
+#### 组件
+~~~ javascript
 {
   "name": "node-sso",
   "version": "0.0.2",
@@ -53,3 +70,14 @@
     "gulp-jsdoc3": "^1.0.1"
   }
 }
+~~~
+
+
+
+
+
+
+
+
+
+
