@@ -1,5 +1,13 @@
 'use strict';
-
+var tgtMap = require('../dataobject/TGTMap');
+var config = require('../config/config').config;
+/**
+ * 随机生成字符串
+ * @param randomFlag
+ * @param min
+ * @param max
+ * @returns {string}
+ */
 var getRandomString = function randomWord(randomFlag, min, max){
     var str = '',
         range = min,
@@ -72,4 +80,67 @@ exports.setSignTokenAndTicket = function(req){
     ses.signToken = signToken;
     ses.signTicket = signTicket;
     return {signToken:signToken,signTicket:signTicket};
+};
+/**
+ * 验证tgt，返回一个json对象：result：true|false ， data.nstgc , data.tgt
+ * @param req
+ * @returns {{}}
+ */
+exports.validationTGC = function(req){
+    var data = {};
+    //在cookies中获取tgc
+    data.nstgc = req.cookies.nstgc;
+    //判断nstgc是否存在,并且长度等于tgc的配置的长度
+    if(data.nstgc && data.nstgc.length === 64){
+        //从缓存中通过nstgc的值作为key，获取tgt对象
+        var tgt = tgtMap[data.nstgc];
+        //如果tgt在缓存中存在，并且username不为空，同时login的状态为true
+        if(tgt && tgt.username && tgt.login === true){
+            data.tgt = tgt;
+            data.result = true;
+        }else{
+            //只要失败就需要登录，跳转到登录页面
+            data.result = false;
+        }
+    }else{
+        //只要失败就需要登录，跳转到登录页面
+        data.result =  false;
+    }
+    return data;
+};
+/**
+ * 生成TGC和TGT
+ * @param req
+ */
+exports.createTGCAndTGT = function(req,res){
+    //生成一个tgc，在分布式应用中，尽量的确保这个tgc的唯一性
+    var tgc = this.getRandomString(false,64);
+    //生成tgc后，创建一个保存用户信息的tgt对象，tgc作为key保存在cookies中，用于SSO的多系统验证
+    var tgt = {
+        username:req.body.username,
+        login:true
+    };
+    //将tgc存放在缓存中，用与tgc的其他系统SSO验证使用,若使用redis则将这个对象存放到redis中
+    tgtMap[tgc] = tgt;
+    //将tgc设置到cookies中，过期时间为900000，httpOnly为true
+    res.cookie('nstgc', tgc, {path:'/',maxAge: 900000, httpOnly: true });
+};
+/**
+ * 生成ST票据
+ */
+exports.createST = function(req){
+    //生成ST，用于登录成功后的获取用户信息的唯一令牌，有效期可以进行配置，默认为5秒
+    var st = this.getRandomString(false,64);
+    //由于用户的st的时间只有很短的时效性，这个st会保存到session中，同时保存这个值的过期时间
+    req.session.st = st;
+    req.session.stExpiresTime = new Date().getTime() + config.stExpiresTime;
+    return st;
+};
+
+exports.setCookies = function(){
+
+};
+
+exports.getCookies = function(){
+
 };

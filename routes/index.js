@@ -52,22 +52,12 @@ router.post('/login.html', function(req, res, next) {
             if(req.body.randomcode === req.session.randomcode){
                 //验证码正确后，直接修改掉这个验证码，将它设置为其他的，令其失效。
                 req.session.randomcode = 'judy89w';
-                //生成一个tgc，在分布式应用中，尽量的确保这个tgc的唯一性
-                var tgc = common.getRandomString(false,64);
-                //生成tgc后，创建一个保存用户信息的tgt对象，tgc作为key保存在cookies中，用于SSO的多系统验证
-                var tgt = {
-                    username:req.body.username,
-                    login:true
-                };
-                //将tgc存放在缓存中，用与tgc的其他系统SSO验证使用,若使用redis则将这个对象存放到redis中
-                tgtMap[tgc] = tgt;
-                //将tgc设置到cookies中，过期时间为900000，httpOnly为true
-                res.cookie('nstgc', tgc, {path:'/',maxAge: 900000, httpOnly: true });
-                //生成ST，用于登录成功后的获取用户信息的唯一令牌，有效期可以进行配置，默认为5秒
-                data.ST = common.getRandomString(false,64);
-                //由于用户的st的时间只有很短的时效性，这个st会保存到session中，同时保存这个值的过期时间
-                req.session.st = data.ST;
-                req.session.stExpiresTime = new Date().getTime() + config.stExpiresTime;
+
+                //生成TGC和TGT
+                common.createTGCAndTGT(req,res);
+                //生成ST
+                data.ST = common.createST(req);
+
                 //完成登录后将结果设置为成功
                 data.result = 'success';
             }else{//验证吗不正确给出的提醒，结果为失败，消息为msg
@@ -109,28 +99,15 @@ router.get('/vst.html',function(req,res){
  * 4 没有service参数的情况下登录成功的返回页面
  */
 router.get('/success.html', function(req, res, next) {
-    //用于返回数据的对象
-    var data = {};
-    //从缓存中获取用户信息并展示
-    //在cookies中获取tgc
-    data.nstgc = req.cookies.nstgc;
-    //判断nstgc是否存在,并且长度等于tgc的配置的长度
-    if(data.nstgc && data.nstgc.length === 64){
-        //从缓存中通过nstgc的值作为key，获取tgt对象
-        var tgt = tgtMap[data.nstgc];
-        //如果tgt在缓存中存在，并且username不为空，同时login的状态为true
-        if(tgt && tgt.username && tgt.login === true){
-            data.username = tgt.username;
-            res.render('success', data);
-        }else{
-            //验证错误后，跳转到登录页
-            res.redirect('/');
-        }
+    //验证TGC，并返回TGT对象，如果data.result等于true，则包含tgt对象和nstgc值，等于false时没有tgc和tgt
+    var data = common.validationTGC(req);
+    if(data && data.result === true){
+        data.username = data.tgt.username;
+        res.render('success', data);
     }else{
-        //验证错误后，跳转到登录页
+        //只要失败就需要登录，跳转到登录页面
         res.redirect('/');
     }
-
 });
 /**
  * 5 验证tgc
@@ -138,32 +115,14 @@ router.get('/success.html', function(req, res, next) {
 router.get('/vtgc.html',function(req,res){
     //获取servcie参数，这个参数是必须的，因为这个操作是其他子系统的验证操作，验证完成后必须返回的地址
     var service =req.param('service');
+    //验证TGC，并返回TGT对象，如果data.result等于true，则包含tgt对象和nstgc值，等于false时没有tgc和tgt
+    var data = common.validationTGC(req);
     //判断service是否为空，如果空则进入SSO首页进行登录操作，如果不空，则获取tgc，通过tgc这个key
-    //在缓存中获取用户信息
-    if(service){
-        var data = {};
-        //在cookies中获取tgc
-        data.nstgc = req.cookies.nstgc;
-        //判断nstgc是否存在,并且长度等于tgc的配置的长度
-        if(data.nstgc && data.nstgc.length === 64){
-            //从缓存中通过nstgc的值作为key，获取tgt对象
-            var tgt = tgtMap[data.nstgc];
-            //如果tgt在缓存中存在，并且username不为空，同时login的状态为true
-            if(tgt && tgt.username && tgt.login === true){
-                //生成一个ST票据，用于获取用户的登录信息
-                req.session.st = common.getRandomString(false,64);
-                //设置st的过期时间，时间为配置的时间，默认为5秒钟
-                req.session.stExpiresTime = new Date().getTime() + config.stExpiresTime;
-                //一切正常后跳转到service的url，并且携带上这个新生成的ST票据
-                res.redirect(service+'?ST='+req.session.st);
-            }else{
-                //只要失败就需要登录，跳转到登录页面
-                res.redirect('/');
-            }
-        }else{
-            //只要失败就需要登录，跳转到登录页面
-            res.redirect('/');
-        }
+    if(service && data && data.result === true){
+        //生成ST
+        var st = common.createST(req);
+        //一切正常后跳转到service的url，并且携带上这个新生成的ST票据
+        res.redirect(service+'?ST='+st);
     }else{
         //只要失败就需要登录，跳转到登录页面
         res.redirect('/');
@@ -172,10 +131,10 @@ router.get('/vtgc.html',function(req,res){
 });
 
 /**
- * 退出
+ * 退出:service参数不是必须的，service参数在系统退出后将按照service地址进行回调，没有service参数会直接返回到首页登录页面
  */
 router.get('/exit.html',function(req,res){
-    //获取servcie参数，但这个参数不是必须的，servcie在系统退出后将要按照service地址进行回调
+    //获取service参数，但这个参数不是必须的，service在系统退出后将要按照service地址进行回调
     var service =req.param('service');
     //首页清理调本身的session
     req.session.destroy();
@@ -199,5 +158,8 @@ router.get('/exit.html',function(req,res){
     }
 
 });
+
+
+
 
 module.exports = router;
