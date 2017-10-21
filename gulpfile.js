@@ -24,7 +24,7 @@ var argv = require("yargs").argv,
 
 
 gulp.task('doc', function (cb) {
-    gulp.src(['README.md', './components/**/*.js'], {read: false})
+    gulp.src(['doc.md', './src/**/*.js'], {read: false})
         .pipe(jsdoc(cb));
 });
 
@@ -59,6 +59,37 @@ gulp.task('jshint', function(){
         //.pipe($.jshint.reporter('fail'));
         .pipe(customerReporter);
 });
+gulp.task('copy',function () {
+    return gulp.src([
+        './bin/**/*',
+        './views/**/*',
+        './routes/**/*',
+        './app.js'
+    ], {base: './'})
+        .pipe(gulp.dest('./dist'))
+});
 
+/* css by less : merge & compress */
+gulp.task('css-min',function () {
+    gulp.src("./public/stylesheets/**/*.less")
+        .pipe(less())
+        .pipe(concat('nodesso.css'))
+        .pipe(gulp.dest('./public/css'))
+        .pipe(rename({suffix:'.min'}))
+        .pipe(minifycss())
+        .pipe(gulp.dest('./public/css'));
+});
+
+gulp.task('js-min',function(){
+    gulp.src("./public/javascripts/**/*.js")
+        .pipe(concat('nodesso.main.js'))
+        .pipe(gulp.dest('./dist/public/js'))
+        .pipe(uglify({
+            mangle: true,//类型：Boolean 默认：true 是否修改变量名
+            compress: true,//类型：Boolean 默认：true 是否完全压缩
+        }))
+        .pipe(rename({suffix:'.min'}))
+        .pipe(gulp.dest("./dist/public/js"));
+});
 
 
