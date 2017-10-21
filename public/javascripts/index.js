@@ -18,6 +18,9 @@ index.initRandomCode = function(){
     $('#randomcode').on('focus',function(){
         $('#randomcode').val('');
     });
+    $('#password').on('focus',function(){
+        $('#password').val('');
+    });
 }
 
 index.login = function(){

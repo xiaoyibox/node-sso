@@ -38,5 +38,9 @@ exports.config = {
     favicon : false,//是否防止favicon，默认为false
     morganLevel : 'dev',//log 级别
     stExpiresTime : 5,//登录成功后ST的过期时间为5秒
-
+    stLength : 64,//st的字符长度
+    nstgcCookiesPath : '/',//cookies存储路径
+    nstgcMaxAge : 900000,//nstgc的cookies过期时间
+    nstgcHttpOnly:true,//HttpOnly设置，推荐true，安全
+    serviceId:1,//运行服务的ID号，用户生成TGC的server唯一识别码，分布式下不同的server配置不同的ID号
 };

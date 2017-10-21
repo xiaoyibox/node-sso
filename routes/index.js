@@ -51,7 +51,7 @@ router.post('/login.html', function(req, res, next) {
             //验证验证码是否正确，如果验证吗不正确提醒验证码不正确，否则进行登录操作
             if(req.body.randomcode === req.session.randomcode){
                 //验证码正确后，直接修改掉这个验证码，将它设置为其他的，令其失效。
-                req.session.randomcode = 'judy89w';
+                req.session.randomcode = '';
 
                 //生成TGC和TGT
                 common.createTGCAndTGT(req,res);
@@ -86,7 +86,7 @@ router.get('/vst.html',function(req,res){
     var currentTime = new Date().getTime();
     //判断获取到的st是否为空，长度是否是配置的长度，是否和session的st相等，是否在有效期内
     //如果同时满足，则在缓存中获取用户信息进行返回，同时将st清空，过期时间清零
-    if(st && st.length === 64 && st === req.session.st && req.session.stExpiresTime <= currentTime){
+    if(st && st.length === config.config.stLength && st === req.session.st && req.session.stExpiresTime <= currentTime){
         req.session.st = '';
         req.session.stExpiresTime = 0;
         data.result = 'success';
@@ -143,7 +143,7 @@ router.get('/exit.html',function(req,res){
     //在cookies中获取tgc
     data.nstgc = req.cookies.nstgc;
     //判断nstgc是否存在,并且长度等于tgc的配置的长度
-    if(data.nstgc && data.nstgc.length === 64){
+    if(data.nstgc && data.nstgc.length > config.config.stLength){
         //清除缓存中tgt对象
         delete tgtMap[data.nstgc];
     }
