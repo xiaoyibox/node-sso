@@ -32,44 +32,50 @@ pm2 start pm2Conf.json
 #### 配置说明
 ##### 系统配置
 ~~~ javascript 1.8
-const redisConfig = {
-    redisIP : 'redis的IP地址',
-    redisPort : 'redis的端口',
+exports.redisConfig = {
+    redisIP : '127.0.0.1',
+    redisPort : '6379',
     redisExpTime : 7200,//Redis session TTL过期时间，单位秒
-    redisDB : 0,//redis的库坐标
+    redisDB : 0,
     redisPrefix : 'nsso:', //redis前缀，默认为sess:，这里配置nsso=node-sso
-    redisPass : 'redis Auth 密码',
+    redisPass : '123456',
 
     //redis connection pool config
     redisMaxConnection : 300, //max connection num , default 30
     redisPerformChecks : false, //checks for needed push/pop functionality
-    redisConfigDBNu : 1, //used num 1 of redis db
+    redisConfigDBNu : 0, //used num 0 of redis db
 };
 
 exports.cookie = {
-        path :'/',//cookie存储路径
-        maxAge : 1800000,//cookie过期时间
+        path :'/',
+        maxAge : 1800000,
         secure : false, //https config true,http config false
-        httpOnly : true //是否设置httpOnly
+        httpOnly : true
 }
 exports.sessionStore = {
-    'host' : redisConfig.redisIP,
-    'port' : redisConfig.redisPort,
-    'pass' : redisConfig.redisPass,
-    'prefix' : redisConfig.redisPrefix,
-    'db' : redisConfig.redisDB,
-    'ttl' : redisConfig.redisExpTime,//Redis session TTL过期时间，单位秒
+    'host' : this.redisConfig.redisIP,
+    'port' : this.redisConfig.redisPort,
+    'pass' : this.redisConfig.redisPass,
+    'prefix' : this.redisConfig.redisPrefix,
+    'db' : this.redisConfig.redisDB,
+    'ttl' : this.redisConfig.redisExpTime,//Redis session TTL过期时间，单位秒
     'logErrors' : true
 }
 
 exports.config = {
     sessionKey : 'nsso.session',
-    sessionSecret : 'session存储的加密字符串，自定义',
+    sessionSecret : 'Asecret-node-sso-secret-XOSODF9sdf7D9sd9fu-dev',
     cookieName : 'nodesso',
     proxyConfig : 1,//proxy config
-    sessionStoreType : 1, //1:内存 2:redis【项目支持session内存管理和redis管理，redis管理解决分布式session同步的问题】
+    sessionStoreType : 2, //1:内存 2:redis
     favicon : false,//是否防止favicon，默认为false
     morganLevel : 'dev',//log 级别
+    stExpiresTime : 5,//登录成功后ST的过期时间为5秒
+    stLength : 64,//st的字符长度
+    nstgcCookiesPath : '/',//cookies存储路径
+    nstgcMaxAge : 86400,//nstgc的cookies过期时间
+    nstgcHttpOnly:true,//HttpOnly设置，推荐true，安全
+    serviceId:1,//运行服务的ID号，用户生成TGC的server唯一识别码，分布式下不同的server配置不同的ID号
 };
 ~~~
 
