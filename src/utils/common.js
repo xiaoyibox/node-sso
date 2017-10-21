@@ -1,5 +1,15 @@
 'use strict';
-
+var tgtMap = require('../dataobject/TGTMap');
+var config = require('../config/config').config;
+var redisPool = require('./redisPool').redisPool;
+var co = require('co');
+/**
+ * 随机生成字符串
+ * @param randomFlag
+ * @param min
+ * @param max
+ * @returns {string}
+ */
 var getRandomString = function randomWord(randomFlag, min, max){
     var str = '',
         range = min,
@@ -72,4 +82,46 @@ exports.setSignTokenAndTicket = function(req){
     ses.signToken = signToken;
     ses.signTicket = signTicket;
     return {signToken:signToken,signTicket:signTicket};
+};
+/**
+ * 生成TGC和TGT
+ * @param req
+ */
+exports.createTGCAndTGT = function(req,res){
+    //生成一个tgc，在分布式应用中，尽量的确保这个tgc的唯一性
+    var tgc = this.getRandomString(false,config.stLength)+this.getRandomString(false,5) + config.serviceId;
+    //生成tgc后，创建一个保存用户信息的tgt对象，tgc作为key保存在cookies中，用于SSO的多系统验证
+    var tgt = {
+        username:req.body.username,
+        login:true
+    };
+    //判断缓存是否使用的是redis，2为redis
+    if(config.sessionStoreType === 2){
+        redisPool.set(tgc, JSON.stringify(tgt), function (err) {});
+        redisPool.expire(tgc, config.nstgcMaxAge, function (err) {});
+    }else if(config.sessionStoreType === 1){
+        //将tgc存放在缓存中，用与tgc的其他系统SSO验证使用,若使用redis则将这个对象存放到redis中
+        tgtMap[tgc] = tgt;
+    }
+    //将tgc设置到cookies中，过期时间为900000，httpOnly为true
+    res.cookie('nstgc', tgc, {path:config.nstgcCookiesPath,maxAge: config.nstgcMaxAge, httpOnly: config.nstgcHttpOnly });
+};
+/**
+ * 生成ST票据
+ */
+exports.createST = function(req){
+    //生成ST，用于登录成功后的获取用户信息的唯一令牌，有效期可以进行配置，默认为5秒
+    var st = this.getRandomString(false,config.stLength);
+    //由于用户的st的时间只有很短的时效性，这个st会保存到session中，同时保存这个值的过期时间
+    req.session.st = st;
+    req.session.stExpiresTime = new Date().getTime() + config.stExpiresTime;
+    return st;
+};
+
+exports.setCookies = function(){
+
+};
+
+exports.getCookies = function(){
+
 };
