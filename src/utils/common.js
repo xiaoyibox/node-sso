@@ -114,7 +114,7 @@ exports.createST = function(req){
     var st = this.getRandomString(false,config.stLength);
     //由于用户的st的时间只有很短的时效性，这个st会保存到session中，同时保存这个值的过期时间
     req.session.st = st;
-    req.session.stExpiresTime = new Date().getTime() + config.stExpiresTime;
+    req.session.stExpiresTime = new Date().getTime() + (config.stExpiresTime*1000);
     return st;
 };
 

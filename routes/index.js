@@ -90,7 +90,7 @@ router.get('/vst.html',function(req,res){
     var currentTime = new Date().getTime();
     //判断获取到的st是否为空，长度是否是配置的长度，是否和session的st相等，是否在有效期内
     //如果同时满足，则在缓存中获取用户信息进行返回，同时将st清空，过期时间清零
-    if(st && st.length === config.config.stLength && st === req.session.st && req.session.stExpiresTime <= currentTime){
+    if(st && st.length === config.config.stLength && st === req.session.st && (parseInt(req.session.stExpiresTime) >= parseInt(currentTime))){
         req.session.st = '';
         req.session.stExpiresTime = 0;
         data.result = 'success';
