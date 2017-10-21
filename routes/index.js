@@ -146,7 +146,7 @@ function validationTGT(service,tgt,req){
         //生成ST
         var st = common.createST(req);
         //一切正常后跳转到service的url，并且携带上这个新生成的ST票据
-        return(service+'?ST='+st);
+        return(service+'?st='+st);
     }else{
         //只要失败就需要登录，跳转到登录页面
         return('/');
