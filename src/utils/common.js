@@ -1,6 +1,8 @@
 'use strict';
 var tgtMap = require('../dataobject/TGTMap');
 var config = require('../config/config').config;
+var redisPool = require('./redisPool').redisPool;
+var co = require('co');
 /**
  * 随机生成字符串
  * @param randomFlag
@@ -82,33 +84,6 @@ exports.setSignTokenAndTicket = function(req){
     return {signToken:signToken,signTicket:signTicket};
 };
 /**
- * 验证tgt，返回一个json对象：result：true|false ， data.nstgc , data.tgt
- * @param req
- * @returns {{}}
- */
-exports.validationTGC = function(req){
-    var data = {};
-    //在cookies中获取tgc
-    data.nstgc = req.cookies.nstgc;
-    //判断nstgc是否存在,并且长度等于tgc的配置的长度
-    if(data.nstgc && data.nstgc.length > config.stLength){
-        //从缓存中通过nstgc的值作为key，获取tgt对象
-        var tgt = tgtMap[data.nstgc];
-        //如果tgt在缓存中存在，并且username不为空，同时login的状态为true
-        if(tgt && tgt.username && tgt.login === true){
-            data.tgt = tgt;
-            data.result = true;
-        }else{
-            //只要失败就需要登录，跳转到登录页面
-            data.result = false;
-        }
-    }else{
-        //只要失败就需要登录，跳转到登录页面
-        data.result =  false;
-    }
-    return data;
-};
-/**
  * 生成TGC和TGT
  * @param req
  */
@@ -120,8 +95,14 @@ exports.createTGCAndTGT = function(req,res){
         username:req.body.username,
         login:true
     };
-    //将tgc存放在缓存中，用与tgc的其他系统SSO验证使用,若使用redis则将这个对象存放到redis中
-    tgtMap[tgc] = tgt;
+    //判断缓存是否使用的是redis，2为redis
+    if(config.sessionStoreType === 2){
+        redisPool.set(tgc, JSON.stringify(tgt), function (err) {});
+        redisPool.expire(tgc, config.nstgcMaxAge, function (err) {});
+    }else if(config.sessionStoreType === 1){
+        //将tgc存放在缓存中，用与tgc的其他系统SSO验证使用,若使用redis则将这个对象存放到redis中
+        tgtMap[tgc] = tgt;
+    }
     //将tgc设置到cookies中，过期时间为900000，httpOnly为true
     res.cookie('nstgc', tgc, {path:config.nstgcCookiesPath,maxAge: config.nstgcMaxAge, httpOnly: config.nstgcHttpOnly });
 };
