@@ -1,7 +1,8 @@
+'use strict';
 var index = {};
 //加载图片验证码
 index.loadRandomCode = function(){
-    $.getJSON("/randomcode.html",function(json){
+    $.getJSON('/randomcode.html',function(json){
         var  randomCode = $('.randomcode');
         if(json && json.result === 'success' && json.data && randomCode){
             randomCode.html(json.data);

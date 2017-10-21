@@ -1,4 +1,5 @@
 'use strict';
+/* jshint ignore:start */
 exports.redisConfig = {
     redisIP : '127.0.0.1',
     redisPort : '6379',
@@ -44,3 +45,4 @@ exports.config = {
     nstgcHttpOnly:true,//HttpOnly设置，推荐true，安全
     serviceId:1,//运行服务的ID号，用户生成TGC的server唯一识别码，分布式下不同的server配置不同的ID号
 };
+/* jshint ignore:end */

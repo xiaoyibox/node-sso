@@ -51,7 +51,7 @@ gulp.task('cleanAll',function(){
 
 /* jshint */
 gulp.task('jshint', function(){
-    return gulp.src(['./components/**/*.js','./bin/**/*.js','./public/javascripts/**/*.js'
+    return gulp.src(['./src/**/*.js','./bin/**/*.js','./public/javascripts/**/*.js'
         , './routes/**/*.js','./app.js'
     ])
         .pipe($.jshint())

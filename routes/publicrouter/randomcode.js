@@ -1,3 +1,4 @@
+'use strict';
 var express = require('express');
 var randomCode = require('../../src/utils/svgCaptcha');
 var router = express.Router();
