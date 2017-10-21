@@ -45,7 +45,7 @@ index.login = function(){
             success: function(json){
                if(json.result === 'success'){
                    if(loginData.service){
-                       window.location.href = loginData.service+'?ST='+json.ST;
+                       window.location.href = loginData.service+'?st='+json.ST;
                    }else{
                        window.location.href = '/success.html';
                    }
