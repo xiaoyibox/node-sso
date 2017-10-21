@@ -1,5 +1,5 @@
 'use strict';
-var svgCaptcha = require("svg-captcha");
+var svgCaptcha = require('svg-captcha');
 /**
  * get captcha based on svg
  * @param _inverse 是否翻转颜色，默认为false

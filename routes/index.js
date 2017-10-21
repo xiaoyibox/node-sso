@@ -1,3 +1,4 @@
+'use strict';
 var express = require('express');
 var router = express.Router();
 var common = require('../src/utils/common');
@@ -40,7 +41,6 @@ router.get(['','/'], function(req, res, next) {
  * 2 post 执行登录的操作
  */
 router.post('/login.html', function(req, res, next) {
-    co(function* () {
         //用于返回的data数据对象
         var data ={};
         //登录传递的参数中包含form token 和 ticket，common.checkCSRF验证传递过来的token和ticket是否正确
@@ -76,7 +76,6 @@ router.post('/login.html', function(req, res, next) {
         }
         //返回登录后的结果，如果service被赋值了，前端页面会根据service是否有值进行callback的操作，同时携带上ST
         res.json(data);
-    });
 });
 /**
  * 3 验证ST，获取用户信息
