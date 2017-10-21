@@ -92,4 +92,30 @@ gulp.task('js-min',function(){
         .pipe(gulp.dest("./dist/public/js"));
 });
 
+gulp.task('js-min-src',function(){
+    gulp.src("./src/**/*.js")
+        .pipe(uglify({
+            mangle: true,//类型：Boolean 默认：true 是否修改变量名
+            compress: true,//类型：Boolean 默认：true 是否完全压缩
+        }))
+        .pipe(gulp.dest("./dist/src"));
+});
+
+gulp.task('js-min-app',function(){
+    gulp.src("./app.js")
+        .pipe(uglify({
+            mangle: true,//类型：Boolean 默认：true 是否修改变量名
+            compress: true,//类型：Boolean 默认：true 是否完全压缩
+        }))
+        .pipe(gulp.dest("./dist/"));
+});
+
+gulp.task('js-min-bin',function(){
+    gulp.src("./bin/www")
+        .pipe(uglify({
+            mangle: true,//类型：Boolean 默认：true 是否修改变量名
+            compress: true,//类型：Boolean 默认：true 是否完全压缩
+        }))
+        .pipe(gulp.dest("./dist/bin/"));
+});
 
