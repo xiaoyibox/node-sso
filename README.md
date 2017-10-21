@@ -8,7 +8,7 @@ Install dependencies:
 npm install -g pm2
 npm install
 ~~~
-Start app at http://localhost:3000/:
+Start app at http://localhost:3000/: [用户名为：username 密码为：password]
 ~~~ shell
 node ./bin/www
 ~~~
