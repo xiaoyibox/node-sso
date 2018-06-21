@@ -18,8 +18,9 @@ var argv = require("yargs").argv,
     spriter = require('gulp-css-spriter'),
     map = require("map-stream"),
     co = require('co'),
-    debug = require('debug')('node-sso:gulpfile');
-    jsdoc = require('gulp-jsdoc3');
+    debug = require('debug')('node-sso:gulpfile'),
+    jsdoc = require('gulp-jsdoc3'),
+    gulpSequence = require('gulp-sequence').use(gulp);
 
 
 
@@ -48,6 +49,11 @@ gulp.task('cleanAll',function(){
     gulp.src(['dist/*'],{read:false})
         .pipe(clean());
 });
+gulp.task('cleanPublicJS',function(){
+    gulp.src(['./public/js/*'],{read:false})
+        .pipe(clean());
+});
+
 
 /* jshint */
 gulp.task('jshint', function(){
@@ -61,10 +67,10 @@ gulp.task('jshint', function(){
 });
 gulp.task('copy',function () {
     return gulp.src([
-        './bin/**/*',
         './views/**/*',
-        './routes/**/*',
-        './app.js'
+        './package.json',
+        './pm2Conf.json',
+        './public/libs/**/*'
     ], {base: './'})
         .pipe(gulp.dest('./dist'))
 });
@@ -80,10 +86,20 @@ gulp.task('css-min',function () {
         .pipe(gulp.dest('./public/css'));
 });
 
-gulp.task('js-min',function(){
+/* js merge and compress */
+/* bin/www、pubilc、routes、src、app.js、 */
+gulp.task('js-min-bin',function(){
+    gulp.src("./bin/www")
+        .pipe(uglify({
+            mangle: true,//类型：Boolean 默认：true 是否修改变量名
+            compress: true,//类型：Boolean 默认：true 是否完全压缩
+        }))
+        .pipe(gulp.dest("./dist/bin/"));
+});
+gulp.task('js-min-public',function(){
     gulp.src("./public/javascripts/**/*.js")
         .pipe(concat('nodesso.main.js'))
-        .pipe(gulp.dest('./dist/public/js'))
+        .pipe(gulp.dest('./public/js'))
         .pipe(uglify({
             mangle: true,//类型：Boolean 默认：true 是否修改变量名
             compress: true,//类型：Boolean 默认：true 是否完全压缩
@@ -91,14 +107,21 @@ gulp.task('js-min',function(){
         .pipe(rename({suffix:'.min'}))
         .pipe(gulp.dest("./dist/public/js"));
 });
-
+gulp.task('js-min-routes',function(){
+    gulp.src("./routes/**/*.js")
+        .pipe(uglify({
+            mangle: true,//类型：Boolean 默认：true 是否修改变量名
+            compress: true,//类型：Boolean 默认：true 是否完全压缩
+        }))
+        .pipe(gulp.dest("./dist/routes/"));
+});
 gulp.task('js-min-src',function(){
     gulp.src("./src/**/*.js")
         .pipe(uglify({
             mangle: true,//类型：Boolean 默认：true 是否修改变量名
             compress: true,//类型：Boolean 默认：true 是否完全压缩
         }))
-        .pipe(gulp.dest("./dist/src"));
+        .pipe(gulp.dest("./dist/src/"));
 });
 
 gulp.task('js-min-app',function(){
@@ -110,12 +133,25 @@ gulp.task('js-min-app',function(){
         .pipe(gulp.dest("./dist/"));
 });
 
-gulp.task('js-min-bin',function(){
-    gulp.src("./bin/www")
-        .pipe(uglify({
-            mangle: true,//类型：Boolean 默认：true 是否修改变量名
-            compress: true,//类型：Boolean 默认：true 是否完全压缩
-        }))
-        .pipe(gulp.dest("./dist/bin/"));
+
+//获取参数
+function getArgs(){
+    console.log(JSON.stringify(argv));
+    return {
+        env : argv.p || !argv.d,
+    mod : argv.m || 'all',
+    modh : argv.h || 'all'
+    }
+}
+
+gulp.task('args',function(){
+    var envData = getArgs();
+    console.log(JSON.stringify(envData));
 });
+
+gulp.task('build',
+    gulpSequence('cleanAll','copy','js-min-public',['css-min','js-min-bin','js-min-routes','js-min-src','js-min-app'],'cleanPublicJS'));
+
+
+
 
